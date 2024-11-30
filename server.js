@@ -5,7 +5,6 @@ const fs = require('fs');
 const app = express();
 const PORT = 8080;
 
-// data untuk 20 saham 
 const stocks = [{
         code: 'CTRA',
         name: 'Ciputra Development Tbk',
@@ -213,7 +212,6 @@ app.get('/stocks/:code', (req, res) => {
 
 let model;
 
-// Memuat model TensorFlow
 async function loadModel() {
     try {
         const modelUrl = 'https://storage.googleapis.com/models-predict/models/model.json';
@@ -224,10 +222,8 @@ async function loadModel() {
     }
 }
 
-// Memuat model saat server mulai
 loadModel();
 
-// Memuat data skala (X dan Y)
 let skala_X, skala_Y;
 try {
     console.log('Loading skala_X from', path.join(__dirname, 'scalers', 'skala_X.json'));
@@ -245,31 +241,25 @@ try {
     console.error('Error loading skala_Y:', error);
 }
 
-// Route untuk prediksi
 app.post('/predict', async(req, res) => {
     try {
         const { exchange_rate, bi_rate, inflation_rate } = req.body;
 
-        // Standarisasi data input
         const dataBaruStandarisasi = [
             (exchange_rate - skala_X.mean[0]) / skala_X.std[0],
             (bi_rate - skala_X.mean[1]) / skala_X.std[1],
             (inflation_rate - skala_X.mean[2]) / skala_X.std[2]
         ];
 
-        // Membuat tensor input
         const inputTensor = tf.tensor2d([dataBaruStandarisasi], [1, 3]);
 
-        // Prediksi menggunakan model
         const prediksiStandarisasi = model.predict(inputTensor);
         const prediksiStandarisasiArray = await prediksiStandarisasi.array();
 
-        // Denormalisasi hasil prediksi
         const prediksi = prediksiStandarisasiArray[0].map((p, i) => {
             return (p * skala_Y.std[i]) + skala_Y.mean[i];
         });
 
-        // Membuat objek hasil prediksi menggunakan data dari stocks
         const hasilPrediksi = stocks.reduce((acc, stock, index) => {
             if (index < prediksi.length) {
                 acc[stock.code] = prediksi[index].toFixed(2);
