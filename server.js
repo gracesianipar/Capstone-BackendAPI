@@ -216,8 +216,8 @@ let model;
 // Memuat model TensorFlow
 async function loadModel() {
     try {
-        const modelPath = path.resolve(__dirname, 'models', 'model.json'); // Resolusi path absolut
-        model = await tf.loadGraphModel(`file://${modelPath}`); // Tambahkan "file://"
+        const modelUrl = 'https://storage.googleapis.com/models-predict/models/model.json';
+        model = await tf.loadGraphModel(modelUrl);
         console.log("Model loaded successfully");
     } catch (error) {
         console.error("Error loading model:", error);
