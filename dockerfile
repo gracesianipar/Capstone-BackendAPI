@@ -8,7 +8,7 @@ RUN npm install
 
 COPY . .
 
-COPY ./scalers /app/scalers
+COPY scalers ./scalers
 
 EXPOSE 8080
 
